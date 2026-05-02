@@ -593,6 +593,32 @@ export default function App() {
     );
   }
 
+  function addToRanking(condition) {
+    const currentRanking = finalRanking
+      ? finalRanking.split(" > ").filter((item) => item.trim() !== "")
+      : [];
+
+    if (currentRanking.includes(condition.shortLabel)) {
+      return;
+    }
+
+    const nextRanking = [...currentRanking, condition.shortLabel];
+    setFinalRanking(nextRanking.join(" > "));
+  }
+
+  function removeFromRanking(label) {
+    const currentRanking = finalRanking
+      ? finalRanking.split(" > ").filter((item) => item.trim() !== "")
+      : [];
+
+    const nextRanking = currentRanking.filter((item) => item !== label);
+    setFinalRanking(nextRanking.join(" > "));
+  }
+
+  function clearRanking() {
+    setFinalRanking("");
+  }
+
   return (
     <>
       <style>{styles}</style>
@@ -639,16 +665,16 @@ export default function App() {
           <section className="card">
             <h2>End user setup</h2>
             <p className="muted">
-              Enter a participant code before starting. Do not use real names so the responses stay anonymous.
+              Write anything you want as your participant code before starting. Do not use your real name, so the responses stay anonymous.
             </p>
 
             <div className="form-grid">
               <label>
-                <span>Participant code (e.g. U01)</span>
+                <span>Participant code — write anything you want here</span>
                 <input
                   value={participantId}
                   onChange={(event) => setParticipantId(event.target.value)}
-                  placeholder="Example: U01"
+                  placeholder="Example: U01, ojdå, test, etc."
                 />
               </label>
             </div>
@@ -767,8 +793,7 @@ export default function App() {
           <section className="card">
             <h2>End user final questions</h2>
             <p className="muted">
-              The participant has completed all five loading strategies. Fill in the final
-              preference and ranking, then copy the results into your spreadsheet.
+              You have completed all five loading strategies. Fill in the final preference and ranking. Important: nothing is submitted automatically from this page.
             </p>
 
             <label>
@@ -786,14 +811,53 @@ export default function App() {
               </select>
             </label>
 
-            <label>
-              <span>Rank the strategies from best to worst</span>
-              <input
-                value={finalRanking}
-                onChange={(event) => setFinalRanking(event.target.value)}
-                placeholder="Example: Skeleton > Progressive > Progress bar > Optimistic > Spinner"
-              />
-            </label>
+            <div className="ranking-box">
+              <span className="ranking-title">Rank the strategies from best to worst</span>
+              <p className="muted small-text">
+                Click the strategies in the order you prefer them. First click = best strategy.
+              </p>
+
+              <div className="ranking-options">
+                {CONDITIONS.map((condition) => {
+                  const selected = finalRanking.split(" > ").includes(condition.shortLabel);
+
+                  return (
+                    <button
+                      key={condition.id}
+                      type="button"
+                      className={selected ? "ranking-button selected" : "ranking-button"}
+                      disabled={selected}
+                      onClick={() => addToRanking(condition)}
+                    >
+                      {condition.shortLabel}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="ranking-result">
+                <strong>Your ranking:</strong> {finalRanking || "No ranking selected yet"}
+              </div>
+
+              {finalRanking && (
+                <div className="ranking-selected-list">
+                  {finalRanking.split(" > ").map((label, index) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className="ranking-chip"
+                      onClick={() => removeFromRanking(label)}
+                    >
+                      {index + 1}. {label} ×
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <button type="button" className="secondary-button" onClick={clearRanking}>
+                Clear ranking
+              </button>
+            </div>
 
             <label>
               <span>Final comment</span>
@@ -804,8 +868,12 @@ export default function App() {
               />
             </label>
 
+            <div className="warning-box">
+              <strong>IMPORTANT:</strong> This page does not send or save your answers automatically. Take a screenshot of this result page and send it to Melissa.
+            </div>
+
             <div className="summary-card">
-              <h3>Copy these final values</h3>
+              <h3>Final result summary</h3>
               <p><strong>Participant:</strong> {participantId}</p>
               <p><strong>Experience:</strong> {experience}</p>
               <p><strong>Condition order:</strong> {conditionOrder.map((condition) => condition.shortLabel).join(" > ")}</p>
@@ -817,6 +885,7 @@ export default function App() {
             <ConditionResultTable records={records} />
 
             <div className="button-row">
+              <button type="button" className="primary-button" onClick={() => alert("This button does not submit anything. Please take a screenshot of your results and send it to Melissa.")}>THIS BUTTON DOES NOTHING</button>
               <button type="button" className="secondary-button" onClick={resetAll}>
                 New participant
               </button>
@@ -834,11 +903,11 @@ export default function App() {
 
             <div className="form-grid">
               <label>
-                <span>Participant code</span>
+                <span>Participant code — write anything you want here</span>
                 <input
                   value={participantId}
                   onChange={(event) => setParticipantId(event.target.value)}
-                  placeholder="Example: D01"
+                  placeholder="Example: D01, test, etc."
                 />
               </label>
 
@@ -943,7 +1012,11 @@ export default function App() {
         {mode === "developer" && developerSubmitted && (
           <section className="card">
             <h2>Developer result</h2>
-            <p className="muted">Copy these values into your developer study spreadsheet.</p>
+            <p className="muted">Important: nothing is submitted automatically from this page.</p>
+
+            <div className="warning-box">
+              <strong>IMPORTANT:</strong> This page does not send or save your answers automatically. Take a screenshot of this result page and send it to Melissa.
+            </div>
 
             <div className="summary-card">
               <p><strong>Participant:</strong> {participantId}</p>
@@ -1114,7 +1187,8 @@ const styles = `
   }
 
   .info-box,
-  .summary-card {
+  .summary-card,
+  .warning-box {
     background: #f7f9fc;
     border: 1px solid #e5eaf2;
     border-radius: 18px;
@@ -1126,6 +1200,13 @@ const styles = `
 
   .summary-card p {
     margin: 8px 0;
+  }
+
+  .warning-box {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #9a3412;
+    font-weight: 700;
   }
 
   .primary-button,
@@ -1365,6 +1446,66 @@ const styles = `
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  .ranking-box {
+    border: 1px solid #e3e8f1;
+    border-radius: 18px;
+    padding: 16px;
+    margin: 14px 0;
+    background: #ffffff;
+  }
+
+  .ranking-title {
+    display: block;
+    font-weight: 800;
+    color: #253047;
+    margin-bottom: 4px;
+  }
+
+  .small-text {
+    font-size: 0.92rem;
+    margin: 0 0 12px;
+  }
+
+  .ranking-options,
+  .ranking-selected-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .ranking-button,
+  .ranking-chip {
+    border: 1px solid #d8dee9;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #253047;
+    font-weight: 800;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+
+  .ranking-button.selected {
+    background: #e2e8f0;
+    color: #64748b;
+    cursor: not-allowed;
+  }
+
+  .ranking-chip {
+    background: #172033;
+    color: #ffffff;
+    border-color: #172033;
+  }
+
+  .ranking-result {
+    background: #f7f9fc;
+    border: 1px solid #e5eaf2;
+    border-radius: 14px;
+    padding: 12px;
+    color: #526071;
+    margin: 12px 0;
   }
 
   .question-card {
