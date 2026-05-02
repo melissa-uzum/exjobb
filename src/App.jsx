@@ -406,7 +406,7 @@ export default function App() {
   const [mode, setMode] = useState("");
   const [started, setStarted] = useState(false);
   const [participantId, setParticipantId] = useState("");
-  const [experience, setExperience] = useState(""); // kept for developer mode only
+  const [experience, setExperience] = useState("");
   const [conditionOrder, setConditionOrder] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loadingState, setLoadingState] = useState("idle");
@@ -674,7 +674,7 @@ export default function App() {
                 <input
                   value={participantId}
                   onChange={(event) => setParticipantId(event.target.value)}
-                  placeholder="Example: U01, ojdå, test, etc."
+                  placeholder="Example: U01, test, etc."
                 />
               </label>
             </div>
