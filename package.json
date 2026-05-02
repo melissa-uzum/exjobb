@@ -1,7 +1,7 @@
 {
   "name": "loading-prototype",
-  "homepage": "https://github.com/melissa-uzum/exjobb",
-  "private": true,
+"homepage": "https://melissa-uzum.github.io/exjobb/",
+"private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
